@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -59,8 +59,10 @@
 </head>
 <body>
 <header>
-  <h1>ðŸ¤– BalanceBot <span style="color:var(--muted);font-weight:400">Live Tuner</span></h1>
-  <div class="badges">
+  <h1>🤖 BalanceBot <span style="color:var(--muted);font-weight:400">Live Tuner</span></h1>
+  <div class="badges" style="display:flex;align-items:center;gap:6px;">
+    <input type="text" id="targetIp" value="192.168.4.1" placeholder="Robot IP" style="background:#0d1117;border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 6px;font-size:11px;width:105px;text-align:center;">
+    <button onclick="reconnectCustomIP()" style="background:var(--accent);color:#0d1117;border:none;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;">Connect</button>
     <span class="badge disarmed" id="statusBadge">DISARMED</span>
     <span class="badge err" id="wsBadge">OFFLINE</span>
   </div>
@@ -319,12 +321,26 @@
 const WS_PORT=81,MAX_PTS=200,PHASE_PTS=150;
 let ws=null,reconnTimer=null,pidEditing=false,pidDeb={};
 
+function getRobotHost(){
+  const input=document.getElementById('targetIp');
+  if(input&&input.value.trim()){return input.value.trim();}
+  if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){return location.hostname;}
+  return '192.168.4.1';
+}
+
+function reconnectCustomIP(){
+  if(ws){ws.close();}
+  clearTimeout(reconnTimer);
+  connectWS();
+}
+
 function connectWS(){
-  const url=`ws://${location.hostname}:${WS_PORT}/`;
+  const host=getRobotHost();
+  const url=`ws://${host}:${WS_PORT}/`;
   setBadge('conn');log('Connecting '+url,'info');
   ws=new WebSocket(url);
-  ws.onopen=()=>{setBadge('ok');log('Connected âœ“','ok');clearTimeout(reconnTimer);};
-  ws.onclose=()=>{setBadge('err');log('Disconnected â€” retry 2s','warn');reconnTimer=setTimeout(connectWS,2000);};
+  ws.onopen=()=>{setBadge('ok');log('Connected to '+host+' ✓','ok');clearTimeout(reconnTimer);};
+  ws.onclose=()=>{setBadge('err');log('Disconnected — retry 2s','warn');reconnTimer=setTimeout(connectWS,2000);};
   ws.onerror=()=>log('WS error','err');
   ws.onmessage=(e)=>{try{onTelemetry(JSON.parse(e.data));}catch(err){log('JSON err: '+err,'err');}};
 }
