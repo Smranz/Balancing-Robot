@@ -42,7 +42,7 @@
 #define PWM_RES    8
 
 // ===================== WiFi / WS =====================
-const char* AP_SSID = "BalanceBot";
+const char* AP_SSID = "hello";
 const char* AP_PASS = "12345678";
 
 WebServer    httpServer(80);
